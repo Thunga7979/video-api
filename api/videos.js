@@ -1,5 +1,3 @@
-import axios from 'axios';
-
 let cacheData = null;
 let cacheTime = 0;
 
@@ -12,10 +10,11 @@ export default async function handler(req, res) {
   }
 
   try {
-    const SHEET_URL = 'https://opensheet.vercel.app/1mt6eux1eU2jGLvCCofopUuw__kcSl-hu51v6CWBtYCE/Trang%201';
-    const response = await axios.get(SHEET_URL);
+    const SHEET_URL = 'https://opensheet.vercel.app/1mt6eux1eU2jGLvCCofopUuw__kcSl-hu51v6CWbBtYCE/Trang%201';
+    const response = await fetch(SHEET_URL);
+    const data = await response.json();
 
-    const videos = response.data
+    const videos = data
       .filter((item) => item.uri && item.uri.startsWith('http'))
       .map((item, index) => ({
         id: item.id || `video${index}`,
@@ -28,6 +27,7 @@ export default async function handler(req, res) {
 
     return res.status(200).json(videos);
   } catch (error) {
-    return res.status(500).json({ error: 'Không thể lấy dữ liệu từ Google Sheets' });
+    console.error('Error:', error);
+    return res.status(500).json({ error: 'Server error', detail: error.message });
   }
 }
