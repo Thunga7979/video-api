@@ -1,33 +1,20 @@
-let cacheData = null;
-let cacheTime = 0;
-
 export default async function handler(req, res) {
-  const now = Date.now();
-  const CACHE_DURATION = 5 * 60 * 1000;
-
-  if (cacheData && now - cacheTime < CACHE_DURATION) {
-    return res.status(200).json(cacheData);
-  }
-
   try {
-    const SHEET_URL = 'https://opensheet.vercel.app/1mt6eux1eU2jGLvCCofopUuw__kcSl-hu51v6CWbBtYCE/Trang%201';
-    const response = await fetch(SHEET_URL);
+    const sheetUrl = 'https://opensheet.vercel.app/1mt6eux1eU2jGLvCCofopUuw__kcSl-hu51v6CWBtYCE/Trang%20Tổng';
+
+    const response = await fetch(sheetUrl);
     const data = await response.json();
 
-    const videos = data
-      .filter((item) => item.uri && item.uri.startsWith('http'))
-      .map((item, index) => ({
-        id: item.id || `video${index}`,
-        title: item.title || `Tập ${index + 1}`,
-        uri: item.uri,
-      }));
+    if (!Array.isArray(data)) {
+      throw new Error("Google Sheet response is not an array");
+    }
 
-    cacheData = videos;
-    cacheTime = now;
-
-    return res.status(200).json(videos);
+    const videos = data.filter(item => item.uri && item.uri.startsWith("http"));
+    res.status(200).json({ videos });
   } catch (error) {
-    console.error('Error:', error);
-    return res.status(500).json({ error: 'Server error', detail: error.message });
+    res.status(500).json({
+      error: "Server error",
+      detail: error.message,
+    });
   }
 }
